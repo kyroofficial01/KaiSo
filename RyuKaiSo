@@ -1,0 +1,192 @@
+-- [[ EQUINOX HUB - STEAL AN EGG (TRUE ANTI-HIT / NO TARGET V1) ]] --
+
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local TitleLabel = Instance.new("TextLabel")
+local SubtitleLabel = Instance.new("TextLabel")
+local AntiHitButton = Instance.new("TextButton")
+local ButtonCorner = Instance.new("UICorner")
+local StatusLabel = Instance.new("TextLabel")
+local DiscordLabel = Instance.new("TextLabel")
+
+local OpenCloseButton = Instance.new("ImageButton")
+local ToggleCorner = Instance.new("UICorner")
+
+-- Parent sa CoreGui/PlayerGui
+local Success, ParentTarget = pcall(function() return game:GetService("CoreGui") end)
+if not Success or not ParentTarget then 
+	ParentTarget = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") 
+end
+ScreenGui.Parent = ParentTarget
+ScreenGui.Name = "EquinoxHubGui"
+ScreenGui.ResetOnSpawn = false
+
+-- Open/Close Floating Button (Horizon Hub Icon Style)
+OpenCloseButton.Name = "OpenCloseToggle"
+OpenCloseButton.Parent = ScreenGui
+OpenCloseButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+OpenCloseButton.Position = UDim2.new(0.85, 0, 0.45, 0)
+OpenCloseButton.Size = UDim2.new(0, 50, 0, 50)
+OpenCloseButton.Image = "rbxassetid://6031097225"
+OpenCloseButton.Active = true
+OpenCloseButton.Draggable = true
+
+ToggleCorner.CornerRadius = UDim.new(1, 0)
+ToggleCorner.Parent = OpenCloseButton
+
+-- Main UI Frame
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+MainFrame.Position = UDim2.new(0.7, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 220, 0, 160)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+-- Headers
+TitleLabel.Name = "Title"
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position = UDim2.new(0, 0, 0, 8)
+TitleLabel.Size = UDim2.new(1, 0, 0, 20)
+TitleLabel.Font = Enum.Font.FredokaOne
+TitleLabel.Text = "EQUINOX HUB"
+TitleLabel.TextColor3 = Color3.fromRGB(220, 220, 255)
+TitleLabel.TextSize = 16
+
+SubtitleLabel.Name = "Subtitle"
+SubtitleLabel.Parent = MainFrame
+SubtitleLabel.BackgroundTransparency = 1
+SubtitleLabel.Position = UDim2.new(0, 0, 0, 28)
+SubtitleLabel.Size = UDim2.new(1, 0, 0, 15)
+SubtitleLabel.Font = Enum.Font.SourceSansBold
+SubtitleLabel.Text = "STEAL AN EGG V1"
+SubtitleLabel.TextColor3 = Color3.fromRGB(150, 150, 180)
+SubtitleLabel.TextSize = 11
+
+-- Anti Hit Toggle Button
+AntiHitButton.Name = "AntiHitButton"
+AntiHitButton.Parent = MainFrame
+AntiHitButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+AntiHitButton.Position = UDim2.new(0.1, 0, 0.38, 0)
+AntiHitButton.Size = UDim2.new(0.8, 0, 0, 32)
+AntiHitButton.Font = Enum.Font.GothamBold
+AntiHitButton.Text = "ANTI HIT: OFF"
+AntiHitButton.TextColor3 = Color3.fromRGB(255, 85, 85)
+AntiHitButton.TextSize = 13
+
+ButtonCorner.CornerRadius = UDim.new(0, 6)
+ButtonCorner.Parent = AntiHitButton
+
+-- Status Label
+StatusLabel.Name = "Status"
+StatusLabel.Parent = MainFrame
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0, 0, 0.65, 0)
+StatusLabel.Size = UDim2.new(1, 0, 0, 15)
+StatusLabel.Font = Enum.Font.SourceSansItalic
+StatusLabel.Text = "STATUS: IDLE"
+StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+StatusLabel.TextSize = 10
+
+-- Discord Link Text
+DiscordLabel.Name = "Discord"
+DiscordLabel.Parent = MainFrame
+DiscordLabel.BackgroundTransparency = 1
+DiscordLabel.Position = UDim2.new(0, 0, 0.82, 0)
+DiscordLabel.Size = UDim2.new(1, 0, 0, 15)
+DiscordLabel.Font = Enum.Font.SourceSansBold
+DiscordLabel.Text = "DISCORD.GG/4HIPPTPS93"
+DiscordLabel.TextColor3 = Color3.fromRGB(120, 120, 140)
+DiscordLabel.TextSize = 10
+
+-- [[ ADVANCED NPC BYPASS & ANTI-HIT SYSTEM ]] --
+
+local AntiHitEnabled = false
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local HeartbeatConn = nil
+
+-- Function para i-disable ang Aggro at Touch Damage ng Monsters
+local function ApplyBypass()
+	local char = LocalPlayer.Character
+	if not char then return end
+
+	-- 1. Anti-Touch / Hitbox Immunity sa Player
+	for _, part in pairs(char:GetChildren()) do
+		if part:IsA("BasePart") then
+			part.CanTouch = false
+		end
+	end
+
+	-- 2. Freeze / Bypass Monster Agro (Disable Monster Hitboxes)
+	for _, model in pairs(workspace:GetChildren()) do
+		if model:IsA("Model") and model ~= char and model:FindFirstChildOfClass("Humanoid") then
+			for _, part in pairs(model:GetChildren()) do
+				if part:IsA("BasePart") then
+					part.CanTouch = false
+					part.CanCollide = false
+				end
+			end
+		end
+	end
+end
+
+-- Optimized Loop (Tumatakbo nang walang Lag)
+local function EnableSystem()
+	if HeartbeatConn then HeartbeatConn:Disconnect() end
+	
+	HeartbeatConn = RunService.Heartbeat:Connect(function()
+		if AntiHitEnabled then
+			ApplyBypass()
+		end
+	end)
+end
+
+local function DisableSystem()
+	if HeartbeatConn then
+		HeartbeatConn:Disconnect()
+		HeartbeatConn = nil
+	end
+	
+	local char = LocalPlayer.Character
+	if char then
+		for _, part in pairs(char:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.CanTouch = true
+			end
+		end
+	end
+end
+
+-- Button Logic
+AntiHitButton.MouseButton1Click:Connect(function()
+	AntiHitEnabled = not AntiHitEnabled
+	if AntiHitEnabled then
+		AntiHitButton.Text = "ANTI HIT: ON"
+		AntiHitButton.TextColor3 = Color3.fromRGB(85, 255, 127)
+		AntiHitButton.BackgroundColor3 = Color3.fromRGB(25, 55, 35)
+		StatusLabel.Text = "ACTIVATING ANTI HIT V1..."
+		StatusLabel.TextColor3 = Color3.fromRGB(85, 255, 127)
+		EnableSystem()
+	else
+		AntiHitButton.Text = "ANTI HIT: OFF"
+		AntiHitButton.TextColor3 = Color3.fromRGB(255, 85, 85)
+		AntiHitButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+		StatusLabel.Text = "STATUS: DISABLED"
+		StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+		DisableSystem()
+	end
+end)
+
+-- UI Toggle Toggle Button Logic
+OpenCloseButton.MouseButton1Click:Connect(function()
+	MainFrame.Visible = not MainFrame.Visible
+end)
+                                    
