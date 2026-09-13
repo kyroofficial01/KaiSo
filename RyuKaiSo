@@ -1,4 +1,4 @@
--- [[ EQUINOX HUB - STEAL AN EGG (TRUE SERVER BYPASS V2) ]] --
+-- [[ EQUINOX HUB - STEAL AN EGG (V3 FIXED & LAG-FREE) ]] --
 
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
@@ -34,7 +34,7 @@ OpenCloseButton.Draggable = true
 ToggleCorner.CornerRadius = UDim.new(1, 0)
 ToggleCorner.Parent = OpenCloseButton
 
--- Main Frame
+-- Main UI Frame
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
@@ -46,7 +46,7 @@ MainFrame.Draggable = true
 UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = MainFrame
 
--- Labels
+-- UI Labels
 TitleLabel.Name = "Title"
 TitleLabel.Parent = MainFrame
 TitleLabel.BackgroundTransparency = 1
@@ -63,11 +63,11 @@ SubtitleLabel.BackgroundTransparency = 1
 SubtitleLabel.Position = UDim2.new(0, 0, 0, 28)
 SubtitleLabel.Size = UDim2.new(1, 0, 0, 15)
 SubtitleLabel.Font = Enum.Font.SourceSansBold
-SubtitleLabel.Text = "STEAL AN EGG V2"
+SubtitleLabel.Text = "STEAL AN EGG V3"
 SubtitleLabel.TextColor3 = Color3.fromRGB(150, 150, 180)
 SubtitleLabel.TextSize = 11
 
--- Anti Hit Button
+-- Anti Hit Toggle Button
 AntiHitButton.Name = "AntiHitButton"
 AntiHitButton.Parent = MainFrame
 AntiHitButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
@@ -92,6 +92,7 @@ StatusLabel.Text = "STATUS: IDLE"
 StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
 StatusLabel.TextSize = 10
 
+-- Discord Link Text
 DiscordLabel.Name = "Discord"
 DiscordLabel.Parent = MainFrame
 DiscordLabel.BackgroundTransparency = 1
@@ -102,7 +103,7 @@ DiscordLabel.Text = "DISCORD.GG/4HIPPTPS93"
 DiscordLabel.TextColor3 = Color3.fromRGB(120, 120, 140)
 DiscordLabel.TextSize = 10
 
--- [[ REAL BYPASS LOGIC ]] --
+-- [[ LIGHTWEIGHT ANTI-HIT / DESYNC ENGINE ]] --
 
 local AntiHitEnabled = false
 local Players = game:GetService("Players")
@@ -111,42 +112,27 @@ local LocalPlayer = Players.LocalPlayer
 
 local LoopConnection = nil
 
-local function EnableBypass()
+local function StartAntiHit()
 	if LoopConnection then LoopConnection:Disconnect() end
 
-	LoopConnection = RunService.RenderStepped:Connect(function()
+	-- Lightweight Step Loop (walang workspace search = Walang lag)
+	LoopConnection = RunService.Stepped:Connect(function()
 		if not AntiHitEnabled then return end
-		local char = LocalPlayer.Character
-		if not char then return end
 		
-		local root = char:FindFirstChild("HumanoidRootPart")
-		local hum = char:FindFirstChildOfClass("Humanoid")
-
-		-- 1. Anti-Ragdoll / Anti-Knockback Override
-		if hum then
-			hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-			hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-		end
-
-		-- 2. Monster Hitbox & Zone Trigger Nullifier
-		for _, v in pairs(workspace:GetDescendants()) do
-			if v:IsA("TouchTransmitter") then
-				-- Tumatagay sa Zone triggers para di mag-fire ang "RUN!!" script
-				if v.Parent and v.Parent.Name:lower():find("zone") or v.Parent.Name:lower():find("hit") then
-					v.Parent.CanTouch = false
-				end
-			elseif v:IsA("Model") and v ~= char and v:FindFirstChildOfClass("Humanoid") then
-				-- Pinapatay ang PrimaryPart Touch ng mga Monster
-				if v.PrimaryPart then
-					v.PrimaryPart.CanTouch = false
-					v.PrimaryPart.CanCollide = false
+		local char = LocalPlayer.Character
+		if char then
+			-- I-disable ang Hitboxes sa player mismo
+			for _, part in ipairs(char:GetChildren()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = false
+					part.CanTouch = false
 				end
 			end
 		end
 	end)
 end
 
-local function DisableBypass()
+local function StopAntiHit()
 	if LoopConnection then
 		LoopConnection:Disconnect()
 		LoopConnection = nil
@@ -154,33 +140,36 @@ local function DisableBypass()
 	
 	local char = LocalPlayer.Character
 	if char then
-		local hum = char:FindFirstChildOfClass("Humanoid")
-		if hum then
-			hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-			hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+		for _, part in ipairs(char:GetChildren()) do
+			if part:IsA("BasePart") and part.Name == "HumanoidRootPart" then
+				part.CanCollide = true
+				part.CanTouch = true
+			end
 		end
 	end
 end
 
+-- Button Logic
 AntiHitButton.MouseButton1Click:Connect(function()
 	AntiHitEnabled = not AntiHitEnabled
 	if AntiHitEnabled then
 		AntiHitButton.Text = "ANTI HIT: ON"
 		AntiHitButton.TextColor3 = Color3.fromRGB(85, 255, 127)
 		AntiHitButton.BackgroundColor3 = Color3.fromRGB(25, 55, 35)
-		StatusLabel.Text = "ACTIVATING ANTI HIT V2..."
+		StatusLabel.Text = "ACTIVATING ANTI HIT V3..."
 		StatusLabel.TextColor3 = Color3.fromRGB(85, 255, 127)
-		EnableBypass()
+		StartAntiHit()
 	else
 		AntiHitButton.Text = "ANTI HIT: OFF"
 		AntiHitButton.TextColor3 = Color3.fromRGB(255, 85, 85)
 		AntiHitButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 		StatusLabel.Text = "STATUS: DISABLED"
 		StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-		DisableBypass()
+		StopAntiHit()
 	end
 end)
 
+-- UI Toggle Logic
 OpenCloseButton.MouseButton1Click:Connect(function()
 	MainFrame.Visible = not MainFrame.Visible
 end)
